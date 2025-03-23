@@ -10,7 +10,7 @@ const UnitSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    items: [
+    contents: [
         {
             type: {
                 type: String,
@@ -21,7 +21,8 @@ const UnitSchema = new mongoose.Schema({
                 type: String, 
                 required: function() {
                     return this.type !== "quiz";
-                }  
+                },  
+                default: ""
             },
             order: { 
                 type: Number, 
