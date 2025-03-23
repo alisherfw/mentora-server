@@ -6,6 +6,8 @@ const helmet = require('helmet')
 const morgan = require('morgan')
 
 const authRoutes = require("./routes/auth")
+const userRoutes = require("./routes/User")
+const searchRoute = require("./routes/Search")
 
 dotenv.config()
 const app = express()
@@ -15,7 +17,14 @@ app.use(cors())
 app.use(helmet())
 app.use(morgan('dev'))
 
+// Auth route
 app.use("/api/auth", authRoutes);
+
+// Search route
+app.use("/api/", searchRoute);
+
+// User Management
+app.use("/api/users", userRoutes);
 
 const PORT = process.env.PORT || 5000;
 
