@@ -22,6 +22,6 @@ const EnrollmentSchema = new mongoose.Schema({
     }]
 }, { timestamps: true })
 
-const Enrollment = new mongoose.model("Enrollment", EnrollmentSchema)
+const Enrollment = mongoose.model("Enrollment", EnrollmentSchema)
 
 module.exports = Enrollment

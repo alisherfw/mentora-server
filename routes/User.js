@@ -14,7 +14,9 @@ router.get("/:id", async (req, res) => {
     }
 
     try {
-        const user = await User.findById(id);
+        const user = await User.findById(id)
+            .populate('createdCourses')
+            .populate('enrolledCourses');
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });

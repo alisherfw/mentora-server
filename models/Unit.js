@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const Chapter = require("./Chapter");
 const UnitSchema = new mongoose.Schema({
     chapterId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -15,7 +15,8 @@ const UnitSchema = new mongoose.Schema({
             type: {
                 type: String,
                 enum: ["text", "image", "video", "quiz"],
-                required: true
+                required: true,
+                default: "text"
             },
             data: { 
                 type: String, 
@@ -38,6 +39,20 @@ UnitSchema.virtual("quizzes", {
     localField: "_id",
     foreignField: "unitId",
     justOne: false
+})
+
+// Pre-save hook: Add this unit to the chapter's units array
+UnitSchema.pre('save', async function(next){
+    if(this.isNew) {
+        try {
+            await Chapter.findByIdAndUpdate(this.chapterId, {
+                $addToSet: { units: this._id }
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }
+    next()
 })
 
 UnitSchema.set("toJSON", { virtuals: true })

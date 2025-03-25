@@ -28,6 +28,8 @@ const QuizSchema = new mongoose.Schema({
 //     }
 // });
 
+
+
 const Quiz = mongoose.model("Quiz", QuizSchema);
 
 module.exports = Quiz;

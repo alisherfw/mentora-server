@@ -1,5 +1,5 @@
 const mongoose = require("mongoose")
-
+const Course = require("./Course")
 const ChapterSchema = new mongoose.Schema({
     title: {
         type: String,
@@ -17,6 +17,20 @@ const ChapterSchema = new mongoose.Schema({
     }]
 
 }, { timestamps: true })
+
+// Add chapter to course's chapters array
+ChapterSchema.pre('save', async function(next) {
+    if(this.isNew) {
+        try {
+            await Course.findByIdAndUpdate(this.courseId, {
+                $addToSet: { chapters: this._id }
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }
+    next()
+})
 
 const Chapter = mongoose.model("Chapter", ChapterSchema)
 
