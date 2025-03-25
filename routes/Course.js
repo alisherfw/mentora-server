@@ -85,12 +85,13 @@ router.post("/create", authenticate, async(req, res) => {
                     for (const unit of chapter.units) {
                         const newUnit = new Unit({
                             title: unit.title,
-                            content: unit.content,
+                            contents: unit.contents,
                             chapterId: newChapter._id,
                             order: unit.order
                         })
 
                         await newUnit.save();
+
                     }
                 }
             }

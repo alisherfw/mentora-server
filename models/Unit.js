@@ -30,7 +30,7 @@ const UnitSchema = new mongoose.Schema({
                 required: true 
             }
         }
-    ]
+    ],
 }, { timestamps: true });
 
 // Virtual field: Automatically fetch quizzes for this unit
