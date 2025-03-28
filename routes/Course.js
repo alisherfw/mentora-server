@@ -5,6 +5,7 @@ const { authenticate, checkOwnership } = require('../middleware/auth')
 const Chapter = require('../models/Chapter')
 const Unit = require('../models/Unit')
 const Enrollment = require('../models/Enrollment')
+const User = require('../models/User')
 const router = express.Router()
 
 // Get all courses on platform
@@ -221,22 +222,33 @@ router.delete("/:id", authenticate, checkOwnership, async (req, res) => {
             return res.status(404).json({ message: "Course not found!" });
         }
 
-        const chapters = await Chapter.find({ courseId });
-        for (const chapter of chapters) {
-            const units = await Unit.find({ chapterId: chapter._id });
-            for (const unit of units) {
-                await Unit.findByIdAndDelete(unit._id);
-            }
-        }
-        // Delete all chapters and units associated with the course
-        // await Unit.deleteMany({ _id: { $in: getUnits } });
-        // Delete all chapters associated with the course
+        // Delete all units and chapters in one step 
+        const chapterIds = await Chapter.find({ courseId }).distinct("_id");
+        await Unit.deleteMany({ chapterId: { $in: chapterIds } }); // Deletes all units at once
         await Chapter.deleteMany({ courseId });
-        // Delete the course itself
+
+
+        // Delete all enrollments related to the course
+        await Enrollment.deleteMany({ courseId });
+
+        // Remove the course from the creator's createdCourse list
+        await User.findByIdAndUpdate(course.author, {
+            $pull: { createdCourses: courseId }
+        });
+
+        // Remove the course from all enrolled users
+        await User.updateMany(
+            { _id: { $in: course.enrolledUsers } },
+            { $pull: { enrolledCourses: courseId } }
+        );
+
+        // Delete the course
         await Course.findByIdAndDelete(courseId);
-        res.status(200).json({ message: "Course deleted successfully!" });
+
+        res.status(200).json({message: "Course deleted successfully!"})
+
     } catch (error) {
-        res.status(500).json({error: error.message})
+        res.status(500).json({ error: error.message })
     }
 })
 
@@ -275,5 +287,41 @@ router.post("/:id/enroll", authenticate, async (req, res) => {
 })
 
 // cancel the course
+router.post("/:id/cancel", authenticate, async (req, res) => {
+    try {
+        const courseId = req.params.id;
+        const userId = req.user.id;
+
+        const course = await Course.findById(courseId);
+
+        if (!course) {
+            return res.status(400).json({ message: "Course not found!" })
+        }
+
+        if (!course.enrolledUsers.includes(userId)) {
+            return res.status(400).json({ message: "You are not enrolled the course" })
+        }
+
+        // Remove the user from the course's enrolledUsers array
+        await Enrollment.findOneAndDelete({ userId });
+
+        // Remove the course from the user's enrolledCourses array
+        await User.findByIdAndUpdate(userId, {
+            $pull: { enrolledCourses: courseId }
+        });
+
+        console.log(userId)
+
+        // Remove the user from the course's enrolledUsers array
+        await Course.findByIdAndUpdate(courseId, {
+            $pull: { enrolledUsers: userId }
+        });
+
+        res.status(200).json({ message: "Successfully canceled the course!" })
+
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+})
 
 module.exports = router;
