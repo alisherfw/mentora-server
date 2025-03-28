@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Learning Platform API Documentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        code {
+            background-color: #e9ecef;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        pre {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Online Learning Platform API Documentation</h1>
+
+<h2>Table of Contents</h2>
+<ol>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#authentication">Authentication</a></li>
+    <li><a href="#user-management">User Management</a></li>
+    <li><a href="#course-management">Course Management</a></li>
+    <li><a href="#enrollment-management">Enrollment Management</a></li>
+    <li><a href="#search-functionality">Search Functionality</a></li>
+    <li><a href="#models">Models</a></li>
+    <li><a href="#error-handling">Error Handling</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+</ol>
+
+<h2 id="introduction">Introduction</h2>
+<p>This API serves as the backend for an online learning platform that allows users to create, manage, and enroll in courses. The API is built using Node.js, Express, and MongoDB, providing a RESTful interface for interacting with course and user data.</p>
+
+<h2 id="authentication">Authentication</h2>
+
+<h3>Register User</h3>
+<pre><code>POST /api/auth/register</code></pre>
+<p><strong>Request Body:</strong></p>
+<pre><code>{
+    "name": "User Name",
+    "email": "user@example.com",
+    "password": "password123"
+}</code></pre>
+<p><strong>Response:</strong></p>
+<ul>
+    <li><strong>201 Created</strong>: User registered successfully.</li>
+    <li><strong>400 Bad Request</strong>: User already exists.</li>
+    <li><strong>500 Internal Server Error</strong>: Server error.</li>
+</ul>
+
+<h3>Login User</h3>
+<pre><code>POST /api/auth/login</code></pre>
+<p><strong>Request Body:</strong></p>
+<pre><code>{
+    "email": "user@example.com",
+    "password": "password123"
+}</code></pre>
+<p><strong>Response:</strong></p>
+<ul>
+    <li><strong>200 OK</strong>: Returns a token and user data.</li>
+    <li><strong>400 Bad Request</strong>: Invalid credentials.</li>
+    <li><strong>500 Internal Server Error</strong>: Server error.</li>
+</ul>
+
+<h2 id="user-management">User Management</h2>
+
+<h3>Get User by ID</h3>
+<pre><code>GET /api/users/:id</code></pre>
+<p><strong>Response:</strong></p>
+<ul>
+    <li><strong>200 OK</strong>: Returns user details.</li>
+    <li><strong>404 Not Found</strong>: User not found.</li>
+    <li><strong>500 Internal Server Error</strong>: Server error.</li>
+</ul>
+
+<h3>Get All Users</h3>
+<pre><code>GET /api/users</code></pre>
+<p><strong>Response:</strong></p>
+<ul>
+    <li><strong>200 OK</strong>: Returns a list of users.</li>
+    <li><strong>500 Internal Server Error</strong>: Server error.</li>
+</ul>
+
+<h2 id="course-management">Course Management</h2>
+
+<h3>Get All Courses</h3>
+<pre><code>GET /api/courses</code></pre>
+<p><strong>Response:</strong></p>
+<ul>
+    <li><strong>200 OK</strong>: Returns a list of courses with pagination.</li>
+    <li><strong>500 Internal Server Error</strong>: Server error.</li>
+</ul>
+
+<h3>Get Course by ID</h3>
+<pre><code>GET /api/courses/:id</code></pre>
+<p><strong>Response:</strong></p>
+<ul>
+    <li><strong>200 OK</strong>: Returns course details.</li>
+    <li><strong>404 Not Found</strong>: Course not found.</li>
+    <li><strong>500 Internal Server Error</strong>: Server error.</li>
+</ul>
+
+<h3>Create Course</h3>
+<pre><code>POST /api/courses/create</code></pre>
+<p><strong>Request Body:</strong></p>
+<pre><code>{
+    "title": "Course Title",
+    "description": "Course Description",
+    "accessType": "public",
+    "chapters": [
+        {
+            "title": "Chapter 1 Title",
+            "units": [
+                {
+                    "title": "Unit Title",
+                    "contents": [
+                        {
+                            "type": "text",
+                            "data": "Content Text",
+                            "order": 1
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}</code></pre>
+<p><strong>Response:</strong></p>
+<ul>
+    <li><strong>201 Created</strong>: Course created successfully.</li>
+    <li><strong>400 Bad Request</strong>: Title is required or other validation errors.</li>
+    <li><strong>500 Internal Server Error</strong>: Server error.</li>
+</ul>
+
+<h3>Update Course</h3>
+<pre><code>PUT /api/courses/:id</code></pre>
+<p><strong>Request Body:</strong></p>
+<pre><code>Same structure as Create Course</code></pre>
+<p><strong>Response:</strong></p>
+<ul>
+    <li><strong>200 OK</strong>: Course updated successfully.</li>
+    <li><strong>404 Not Found</strong>: Course not found.</li>
+    <li><strong>400 Bad Request</strong>: Validation errors.</li>
+    <li><strong>500 Internal Server Error</strong>: Server error.</li>
+</ul>
+
+<h3>Delete Course</h3>
+<pre><code>DELETE /api/courses/:id</code></pre>
+<p><strong>Response:</strong></p>
+<ul>
+    <li><strong>200 OK</strong>: Course deleted successfully.</li>
+    <li><strong>404 Not Found</strong>: Course not found.</li>
+    <li><strong>500 Internal Server Error</strong>: Server error.</li>
+</ul>
+
+<h2 id="enrollment-management">Enrollment Management</h2>
+
+<h3>Enroll in Course</h3>
+<pre><code>POST /api/courses/:id/enroll</code></pre>
+<p><strong>Response:</strong></p>
+<ul>
+    <li><strong>200 OK</strong>: Successfully enrolled in the course.</li>
+    <li><strong>404 Not Found</strong>: Course not found.</li>
+    <li><strong>400 Bad Request</strong>: Already enrolled in the course.</li>
+    <li><strong>500 Internal Server Error</strong>: Server error.</li>
+</ul>
+
+<h3>Cancel Enrollment</h3>
+<pre><code>POST /api/courses/:id/cancel</code></pre>
+<p><strong>Response:</strong></p>
+<ul>
+    <li><strong>200 OK</strong>: Successfully canceled the course.</li>
+    <li><strong>404 Not Found</strong>: Course not found.</li>
+    <li><strong>400 Bad Request</strong>: Not enrolled in the course.</li>
+    <li><strong>500 Internal Server Error</strong>: Server error.</li>
+</ul>
+
+<h2 id="search-functionality">Search Functionality</h2>
+
+<h3>Search Users and Courses</h3>
+<pre><code>GET /api/search?query=searchTerm</code></pre>
+<p><strong>Response:</strong></p>
+<ul>
+    <li><strong>200 OK</strong>: Returns matching users and courses based on the search term.</li>
+    <li><strong>500 Internal Server Error</strong>: Server error.</li>
+</ul>
+
+<h2 id="models">Models</h2>
+
+<h3>Course Model</h3>
+<p><strong>Fields:</strong></p>
+<ul>
+    <li>title (String, required)</li>
+    <li>description (String)</li>
+    <li>author (ObjectId, ref: "User", required)</li>
+    <li>chapters (Array of ObjectId, ref: "Chapter")</li>
+    <li>enrolledUsers (Array of ObjectId, ref: "User")</li>
+    <li>accessType (String, enum: ["public", "private"], default: "public")</li>
+</ul>
+
+<h3>User Model</h3>
+<p><strong>Fields:</strong></p>
+<ul>
+    <li>name (String, required)</li>
+    <li>email (String, required, unique)</li>
+    <li>password (String, required)</li>
+    <li>profilePicture (String, default: "default_pfp_url")</li>
+    <li>createdCourses (Array of ObjectId, ref: "Course")</li>
+    <li>enrolledCourses (Array of ObjectId, ref: "Enrollment")</li>
+</ul>
+
+<h2 id="error-handling">Error Handling</h2>
+<p>The API uses standard HTTP status codes to indicate success or failure of API requests. All error responses contain an error message detailing the reason for the failure.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>This documentation provides an overview of the API endpoints available in the Online Learning Platform. Use this as a guide for integrating the backend with your frontend application.</p>
+
+</body>
+</html>
