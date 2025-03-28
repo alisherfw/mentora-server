@@ -93,7 +93,7 @@ This project is licensed under the MIT License.
 
 ## 📧 Contact
 For any inquiries, please contact:
-- Your Name - [Alisherbek Abduolimov](mailto:alisherfw@gmail.com)
+- Alisherbek Abduolimov - [Email](mailto:alisherfw@gmail.com)
 
 ---
 
