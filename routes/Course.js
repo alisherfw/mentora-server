@@ -109,17 +109,18 @@ router.post("/create", authenticate, async (req, res) => {
 router.put("/:id", authenticate, checkOwnership, async (req, res) => {
     try {
         const { title, description, accessType, chapters } = req.body;
-        const courseId = req.params;
+        const courseId = req.params.id;
 
         if (!title) {
-            return res.status(400).json({ message: "Title is required" })
+            return res.status(400).json({ message: "Title is required" });
         }
 
         const course = await Course.findById(courseId);
         if (!course) {
-            return res.status(404).json({ message: "Course not found!" })
+            return res.status(404).json({ message: "Course not found!" });
         }
 
+        // Update course details
         course.title = title;
         course.description = description || "";
         course.accessType = accessType || "public";
@@ -127,62 +128,64 @@ router.put("/:id", authenticate, checkOwnership, async (req, res) => {
 
         const existingChapters = await Chapter.find({ courseId }).lean();
 
-        const updatedChapters = new Set();
-
+        const updatedChapterIds = new Set();
         for (const chapter of chapters) {
             let chapterDoc = existingChapters.find(ch => ch._id.toString() === chapter._id);
 
             if (chapterDoc) {
-                await Chapter.findByIdAndUpdate(chapterDoc._id, { title: chapter.title })
+                // Update existing chapter
+                await Chapter.findByIdAndUpdate(chapterDoc._id, { title: chapter.title });
             } else {
+                // Create new chapter
                 chapterDoc = new Chapter({ title: chapter.title, courseId });
                 await chapterDoc.save();
             }
 
-            updatedChapters.add(chapterDoc._id.toString())
+            updatedChapterIds.add(chapterDoc._id.toString());
 
+            // Manage Units in Chapter
             const existingUnits = await Unit.find({ chapterId: chapterDoc._id }).lean();
             const updatedUnitIds = new Set();
 
             for (const unit of chapter.units) {
-                let unitDoc = existingUnits.find(u => u._id.toString === unit._id);
-
+                let unitDoc = existingUnits.find(u => u._id.toString() === unit._id);
+                
                 if (unitDoc) {
-                    await Unit.findByIdAndUpdate(unitDoc._id, {
-                        title: unit.title,
-                        contents: unit.contents
-                    })
+                    await Unit.findByIdAndUpdate(unitDoc._id, { 
+                        title: unit.title, 
+                        contents: unit.contents, 
+                        order: unit.order 
+                    });
                 } else {
-                    unitDoc = new Unit({
-                        chapterId: chapterDoc._id,
-                        title: unit.title,
-                        contents: unit.contents
-                    })
+                    unitDoc = new Unit({ 
+                        title: unit.title, 
+                        contents: unit.contents, 
+                        chapterId: chapterDoc._id, 
+                        order: unit.order 
+                    });
                     await unitDoc.save();
                 }
-                updatedUnitIds.add(unitDoc._id.toString());
 
+                updatedUnitIds.add(unitDoc._id.toString());
             }
 
-            await Unit.deleteMany({
-                chapterId: chapterDoc._id,
-                _id: { $nin: Array.from(updatedUnitIds) }
+            // Delete removed units
+            await Unit.deleteMany({ 
+                chapterId: chapterDoc._id, 
+                _id: { $nin: Array.from(updatedUnitIds) } 
             });
-
         }
 
-        await Chapter.deleteMany({
-            courseId,
-            _id: { $nin: Array.from(updatedChapters) }
-        })
+        // Delete removed chapters
+        await Chapter.deleteMany({ 
+            courseId, 
+            _id: { $nin: Array.from(updatedChapterIds) } 
+        });
 
-        res.status(200).json({
-            message: "Course updated successfully",
-            course
-        })
+        res.status(200).json({ message: "Course updated successfully", course });
 
     } catch (error) {
-        res.status(500).json({ error: error.message })
+        res.status(500).json({ error: error.message });
     }
 })
 
