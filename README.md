@@ -1,7 +1,7 @@
-# 📚 Online Learning Platform
+# 📚 Mentora - Online Learning Platform
 
 ## Overview
-Welcome to the **Online Learning Platform**, a web application that enables users to create, manage, and enroll in courses. Built using **Node.js**, **Express**, and **MongoDB**, this platform provides a robust RESTful API for seamless interaction between the frontend and backend.
+Welcome to the **Mentora**, a web application that enables users to create, manage, and enroll in courses. Built using **Node.js**, **Express**, and **MongoDB**, this platform provides a robust RESTful API for seamless interaction between the frontend and backend.
 
 ## 🚀 Features
 - **User Authentication**: Secure registration and login using JWT.
