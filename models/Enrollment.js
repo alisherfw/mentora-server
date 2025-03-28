@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const User = require('./User')
 
 const EnrollmentSchema = new mongoose.Schema({
     userId: {
@@ -21,6 +22,19 @@ const EnrollmentSchema = new mongoose.Schema({
         default: []
     }]
 }, { timestamps: true })
+
+EnrollmentSchema.pre('save', async function(next) {
+    if(this.isNew) {
+        try {
+            await User.findByIdAndUpdate(this.userId, {
+                $addToSet: { enrolledCourses: this._id }
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }
+    next()
+})
 
 const Enrollment = mongoose.model("Enrollment", EnrollmentSchema)
 

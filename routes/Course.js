@@ -4,6 +4,7 @@ const Course = require('../models/Course')
 const { authenticate, checkOwnership } = require('../middleware/auth')
 const Chapter = require('../models/Chapter')
 const Unit = require('../models/Unit')
+const Enrollment = require('../models/Enrollment')
 const router = express.Router()
 
 // Get all courses on platform
@@ -212,6 +213,67 @@ router.put("/:id", authenticate, checkOwnership, async (req, res) => {
 })
 
 // Delete course 
+router.delete("/:id", authenticate, checkOwnership, async (req, res) => {
+    try {
+        const courseId = req.params.id;
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ message: "Course not found!" });
+        }
 
+        const chapters = await Chapter.find({ courseId });
+        for (const chapter of chapters) {
+            const units = await Unit.find({ chapterId: chapter._id });
+            for (const unit of units) {
+                await Unit.findByIdAndDelete(unit._id);
+            }
+        }
+        // Delete all chapters and units associated with the course
+        // await Unit.deleteMany({ _id: { $in: getUnits } });
+        // Delete all chapters associated with the course
+        await Chapter.deleteMany({ courseId });
+        // Delete the course itself
+        await Course.findByIdAndDelete(courseId);
+        res.status(200).json({ message: "Course deleted successfully!" });
+    } catch (error) {
+        res.status(500).json({error: error.message})
+    }
+})
+
+// Enrollment to the course
+router.post("/:id/enroll", authenticate, async (req, res) => {
+    try {
+        const courseId = req.params.id;
+        const userId = req.user.id;
+
+        // Check if the course exists
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ message: "Course not found!" });
+        }
+
+        // Check if the user is already enrolled
+        if (course.enrolledUsers.includes(userId)) {
+            return res.status(400).json({ message: "You are already enrolled in this course!" });
+        }
+
+        // Enroll the user
+        course.enrolledUsers.push(userId);
+        await course.save();
+
+        const newEnrollment = new Enrollment({
+            userId,
+            courseId: course._id
+        });
+        await newEnrollment.save();
+
+        res.status(200).json({ message: "Successfully enrolled in the course!", course });
+
+    } catch (error) {
+        res.status(500).json({ error: error.message })
+    }
+})
+
+// cancel the course
 
 module.exports = router;
