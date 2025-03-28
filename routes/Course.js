@@ -13,7 +13,11 @@ router.get("/", async (req, res) => {
         const limit = req.query.limit || 10;
         const skip = (page - 1) * limit;
 
-        const courses = await Course.find().skip(skip).limit(limit);
+        const courses = await Course.find()
+            .skip(skip)
+            .limit(limit)
+            .sort({ createdAt: -1 })
+            .populate("chapters");
         const totalCourses = await Course.countDocuments();
 
         res.status(200).json({
@@ -125,12 +129,15 @@ router.put("/:id", authenticate, checkOwnership, async (req, res) => {
         course.description = description || "";
         course.accessType = accessType || "public";
 
-        
-
+        // Handle chapters and units
         const existingChapters = await Chapter.find({ courseId }).lean();
 
+        // Create a set to track updated chapter IDs
         const updatedChapterIds = new Set();
+
         for (const chapter of chapters) {
+            // Check if the chapter already exists
+            // If it does, update it; if not, create a new one
             let chapterDoc = existingChapters.find(ch => ch._id.toString() === chapter._id);
 
             if (chapterDoc) {
@@ -149,8 +156,11 @@ router.put("/:id", authenticate, checkOwnership, async (req, res) => {
             const updatedUnitIds = new Set();
 
             for (const unit of chapter.units) {
+                // Check if the unit already exists
+                // If it does, update it; if not, create a new one
                 let unitDoc = existingUnits.find(u => u._id.toString() === unit._id);
 
+                // Check if the unit already exists
                 if (unitDoc) {
                     await Unit.findByIdAndUpdate(unitDoc._id, {
                         title: unit.title,
@@ -167,6 +177,7 @@ router.put("/:id", authenticate, checkOwnership, async (req, res) => {
                     await unitDoc.save();
                 }
 
+                // Add the unit ID to the updated set
                 updatedUnitIds.add(unitDoc._id.toString());
             }
 
@@ -189,13 +200,18 @@ router.put("/:id", authenticate, checkOwnership, async (req, res) => {
             { $pull: { chapters: { $nin: Array.from(updatedChapterIds) } } }
         );
 
+        // Save the course
         await course.save();
 
+        // Return the updated course
         res.status(200).json({ message: "Course updated successfully", course });
 
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 })
+
+// Delete course 
+
 
 module.exports = router;
