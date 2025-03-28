@@ -9,8 +9,8 @@ const router = express.Router()
 // Get all courses on platform
 router.get("/", async (req, res) => {
     try {
-        const page = req.params.page || 1;
-        const limit = req.params.limit || 10;
+        const page = req.query.page || 1;
+        const limit = req.query.limit || 10;
         const skip = (page - 1) * limit;
 
         const courses = await Course.find().skip(skip).limit(limit);
@@ -124,7 +124,8 @@ router.put("/:id", authenticate, checkOwnership, async (req, res) => {
         course.title = title;
         course.description = description || "";
         course.accessType = accessType || "public";
-        await course.save();
+
+        
 
         const existingChapters = await Chapter.find({ courseId }).lean();
 
@@ -149,19 +150,19 @@ router.put("/:id", authenticate, checkOwnership, async (req, res) => {
 
             for (const unit of chapter.units) {
                 let unitDoc = existingUnits.find(u => u._id.toString() === unit._id);
-                
+
                 if (unitDoc) {
-                    await Unit.findByIdAndUpdate(unitDoc._id, { 
-                        title: unit.title, 
-                        contents: unit.contents, 
-                        order: unit.order 
+                    await Unit.findByIdAndUpdate(unitDoc._id, {
+                        title: unit.title,
+                        contents: unit.contents,
+                        order: unit.order
                     });
                 } else {
-                    unitDoc = new Unit({ 
-                        title: unit.title, 
-                        contents: unit.contents, 
-                        chapterId: chapterDoc._id, 
-                        order: unit.order 
+                    unitDoc = new Unit({
+                        title: unit.title,
+                        contents: unit.contents,
+                        chapterId: chapterDoc._id,
+                        order: unit.order
                     });
                     await unitDoc.save();
                 }
@@ -170,17 +171,25 @@ router.put("/:id", authenticate, checkOwnership, async (req, res) => {
             }
 
             // Delete removed units
-            await Unit.deleteMany({ 
-                chapterId: chapterDoc._id, 
-                _id: { $nin: Array.from(updatedUnitIds) } 
+            await Unit.deleteMany({
+                chapterId: chapterDoc._id,
+                _id: { $nin: Array.from(updatedUnitIds) }
             });
         }
 
         // Delete removed chapters
-        await Chapter.deleteMany({ 
-            courseId, 
-            _id: { $nin: Array.from(updatedChapterIds) } 
+        await Chapter.deleteMany({
+            courseId,
+            _id: { $nin: Array.from(updatedChapterIds) }
         });
+
+        // Remove chapters from course if they are not in the updated list
+        await Course.updateMany(
+            { _id: courseId },
+            { $pull: { chapters: { $nin: Array.from(updatedChapterIds) } } }
+        );
+
+        await course.save();
 
         res.status(200).json({ message: "Course updated successfully", course });
 

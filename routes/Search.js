@@ -36,7 +36,8 @@ router.get("/search", async (req, res) => {
             results.courses = courses.map(course => ({
                 _id: course._id,
                 title: course.title,
-                description: course.description // Include only necessary fields
+                description: course.description,
+                thumbnail: course.thumbnail // Include only necessary fields
             }));
 
         }
