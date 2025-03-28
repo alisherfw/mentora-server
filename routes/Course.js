@@ -265,19 +265,16 @@ router.post("/:id/enroll", authenticate, async (req, res) => {
         }
 
         // Check if the user is already enrolled
-        if (course.enrolledUsers.includes(userId)) {
+        if (new Set(course.enrolledUsers).has(userId)) {
             return res.status(400).json({ message: "You are already enrolled in this course!" });
         }
 
-        // Enroll the user
-        course.enrolledUsers.push(userId);
-        await course.save();
-
-        const newEnrollment = new Enrollment({
-            userId,
-            courseId: course._id
+        // Enroll user in one step
+        await Course.findByIdAndUpdate(courseId, { 
+            $addToSet: { enrolledUsers: userId } 
         });
-        await newEnrollment.save();
+
+        await Enrollment.create({ userId, courseId });
 
         res.status(200).json({ message: "Successfully enrolled in the course!", course });
 
@@ -298,25 +295,25 @@ router.post("/:id/cancel", authenticate, async (req, res) => {
             return res.status(400).json({ message: "Course not found!" })
         }
 
-        if (!course.enrolledUsers.includes(userId)) {
-            return res.status(400).json({ message: "You are not enrolled the course" })
+        if (!new Set(course.enrolledUsers.map(id => id.toString())).has(userId)) {
+            return res.status(400).json({ message: "You are not enrolled in this course!" });
         }
 
         // Remove the user from the course's enrolledUsers array
-        await Enrollment.findOneAndDelete({ userId });
+        await Enrollment.findOneAndDelete({ userId, courseId });
 
-        // Remove the course from the user's enrolledCourses array
-        await User.findByIdAndUpdate(userId, {
-            $pull: { enrolledCourses: courseId }
-        });
+        // Remove user from enrolledCourses & enrolledUsers in parallel
 
-        console.log(userId)
+        await Promise.all([
+            User.findByIdAndUpdate(userId, {
+                $pull: { enrolledCourses: courseId }
+            }),
+            Course.findByIdAndUpdate(courseId, {
+                $pull: { enrolledUsers: userId }
+            })
+        ])
 
-        // Remove the user from the course's enrolledUsers array
-        await Course.findByIdAndUpdate(courseId, {
-            $pull: { enrolledUsers: userId }
-        });
-
+        
         res.status(200).json({ message: "Successfully canceled the course!" })
 
     } catch (error) {
