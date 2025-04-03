@@ -19,7 +19,9 @@ router.get("/", async (req, res) => {
             .skip(skip)
             .limit(limit)
             .sort({ createdAt: -1 })
-            .populate("chapters");
+            .populate("chapters")
+            .populate("author")
+            ;
         const totalCourses = await Course.countDocuments();
 
         res.status(200).json({
