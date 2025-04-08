@@ -44,6 +44,7 @@ router.get("/:id", async (req, res) => {
         return res.status(400).json({ message: "Invalid course ID format" })
     }
 
+
     try {
         const course = await Course.findById(id)
             .populate("chapters")

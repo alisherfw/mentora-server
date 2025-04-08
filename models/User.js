@@ -17,7 +17,8 @@ const UserSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Enrollment",
         default: [] // Empty array for default 
-    }]
+    }],
+    bio: { type: String, default: "" }
 }, { timestamps: true })
 
 UserSchema.set("toJSON", {
