@@ -64,9 +64,11 @@ router.get("/:id", async (req, res) => {
 // Create course
 router.post("/create", authenticate, async (req, res) => {
 
+    console.log(req.user)
+
     try {
 
-        const { title, description, accessType, chapters } = req.body;
+        const { title, description, accessType, chapters, thumbnail } = req.body;
 
         if (!title) {
             return res.status(400).json({ message: "Title is required" });
@@ -77,6 +79,7 @@ router.post("/create", authenticate, async (req, res) => {
             description: description || "",
             author: req.user.id,
             accessType: accessType || "public",
+            thumbnail
         })
 
         await newCourse.save();

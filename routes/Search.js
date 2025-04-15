@@ -36,7 +36,8 @@ router.get("/search", async (req, res) => {
                 _id: course._id,
                 title: course.title,
                 description: course.description,
-                thumbnail: course.thumbnail // Include only necessary fields
+                thumbnail: course.thumbnail,
+                author: course.author, // Include only necessary fields
             }));
 
         }
