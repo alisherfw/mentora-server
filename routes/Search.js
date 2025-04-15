@@ -31,7 +31,7 @@ router.get("/search", async (req, res) => {
             const courseSearchCriteria = {
                 title: { $regex: searchTerm, $options: 'i' } // case insensitive search
             };
-            const courses = await Course.find(courseSearchCriteria);
+            const courses = await Course.find(courseSearchCriteria).populate('author', 'name');
             results.courses = courses.map(course => ({
                 _id: course._id,
                 title: course.title,
