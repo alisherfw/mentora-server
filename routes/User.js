@@ -16,7 +16,18 @@ router.get("/:id", async (req, res) => {
     try {
         const user = await User.findById(id)
             .populate('createdCourses')
-            .populate('enrolledCourses');
+            .populate({
+                path: 'enrolledCourses', // Populate to get Enrollment documents
+                model: 'Enrollment',
+                populate: {
+                  path: 'courseId',     // Populate the 'courseId' field in Enrollment to get Course details
+                  model: 'Course',
+                  populate: {          // Populate the 'author' field within the Course model
+                    path: 'author',
+                    select: 'name'
+                  }
+                }
+              });
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });

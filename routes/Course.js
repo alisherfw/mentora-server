@@ -64,8 +64,6 @@ router.get("/:id", async (req, res) => {
 // Create course
 router.post("/create", authenticate, async (req, res) => {
 
-    console.log(req.user)
-
     try {
 
         const { title, description, accessType, chapters, thumbnail } = req.body;
@@ -271,10 +269,10 @@ router.post("/:id/enroll", authenticate, async (req, res) => {
         }
 
         // Check if the user is already enrolled
-        if (new Set(course.enrolledUsers).has(userId)) {
+        const existingEnrollment = await Enrollment.findOne({ userId, courseId });
+        if (existingEnrollment) {
             return res.status(400).json({ message: "You are already enrolled in this course!" });
         }
-
         // Enroll user in one step
         await Course.findByIdAndUpdate(courseId, { 
             $addToSet: { enrolledUsers: userId } 
